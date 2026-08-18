@@ -43,11 +43,12 @@ Mỗi tính năng nghiệp vụ nằm trong một thư mục dưới `src/module
 
 1. Nhập chủ đề, ngôn ngữ, phong cách và thời lượng 15-60 giây.
 2. API tạo storyboard 5-8 cảnh và kiểm tra chặt cấu trúc đầu ra.
-3. Nhấn **Dựng MP4**. Job được xếp hàng và cập nhật tiến độ trên giao diện.
-4. Renderer tạo video H.264 dọc 720x1280, audio track im lặng, hiệu ứng chuyển cảnh và poster.
-5. Xem trước hoặc tải file trong thư viện dự án.
+3. Sửa chữ trên màn hình, lời đọc và lựa chọn voice-over cho từng dự án.
+4. Nhấn **Dựng MP4**. Job được xếp hàng và cập nhật tiến độ trên giao diện.
+5. Renderer tạo video H.264 dọc 720x1280, hiệu ứng chuyển cảnh, poster và voice-over tùy chọn.
+6. Xem trước hoặc tải file trong thư viện dự án.
 
-Đây là phong cách kinetic typography, nên video chạy được mà không phụ thuộc kho stock, bản quyền nhạc hoặc dịch vụ TTS. Trường `visual` trong mỗi cảnh là chỉ dẫn B-roll để mở rộng pipeline sau này.
+Đây là phong cách kinetic typography, nên video chạy được mà không phụ thuộc kho stock hoặc bản quyền nhạc. Mặc định renderer dùng audio im lặng; chỉ gọi Gemini TTS khi người dùng chủ động chọn trên giao diện. Trường `visual` trong mỗi cảnh là chỉ dẫn B-roll để mở rộng pipeline sau này.
 
 ## Dùng AI thật
 
@@ -58,6 +59,8 @@ MOCK_AI=false
 AI_PROVIDER=gemini
 GEMINI_API_KEY=your_key
 GEMINI_MODEL=gemini-2.5-flash
+GEMINI_TTS_MODEL=gemini-3.1-flash-tts-preview
+GEMINI_TTS_VOICE=Kore
 ```
 
 Hoặc đặt `AI_PROVIDER=openai`, `OPENAI_API_KEY` và `OPENAI_MODEL`. Không commit file `.env`.
@@ -79,6 +82,7 @@ npm run render:demo  # Tạo renders/demo.mp4
 | `POST` | `/api/video-plans/generate` | Tạo storyboard |
 | `GET` | `/api/video-plans` | Danh sách dự án |
 | `GET` | `/api/video-plans/:id` | Chi tiết và progress |
+| `PATCH` | `/api/video-plans/:id` | Sửa storyboard và lựa chọn voice |
 | `POST` | `/api/video-plans/:id/render` | Xếp hàng dựng MP4 |
 | `DELETE` | `/api/video-plans/:id` | Xóa dự án và file render |
 

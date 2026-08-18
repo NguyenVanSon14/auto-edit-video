@@ -3,7 +3,8 @@ const elements = Object.fromEntries([
   'serverLabel', 'generateForm', 'niche', 'duration', 'durationValue', 'generateButton', 'formMessage',
   'projectList', 'emptyPreview', 'videoPreview', 'posterPreview', 'previewCopy', 'sceneCounter',
   'sceneText', 'sceneNarration', 'previewActions', 'renderButton', 'downloadButton', 'progressWrap',
-  'progressLabel', 'progressValue', 'renderProgress',
+  'progressLabel', 'progressValue', 'renderProgress', 'storyboardEditor', 'storyboardForm',
+  'sceneEditorList', 'saveStoryboardButton', 'storyboardMessage', 'projectVoiceProvider', 'editorState',
 ].map((id) => [id, document.getElementById(id)]));
 
 async function api(path, options) {
@@ -48,6 +49,23 @@ function showScene() {
   state.sceneIndex = (state.sceneIndex + 1) % state.selected.scenes.length;
 }
 
+function renderStoryboardEditor(plan) {
+  const busy = ['queued', 'rendering'].includes(plan.status);
+  elements.storyboardEditor.hidden = false;
+  elements.projectVoiceProvider.value = plan.voiceProvider || 'none';
+  elements.projectVoiceProvider.disabled = busy;
+  elements.saveStoryboardButton.disabled = busy;
+  elements.editorState.textContent = busy ? statusText(plan.status) : `${plan.scenes.length} cảnh`;
+  elements.sceneEditorList.innerHTML = plan.scenes.map((scene, index) => `
+    <div class="scene-editor" data-scene-index="${index}">
+      <div class="scene-editor-header"><span>CẢNH ${String(index + 1).padStart(2, '0')}</span><span>${scene.durationSeconds} giây</span></div>
+      <label>Chữ trên màn hình</label>
+      <input type="text" data-field="onScreenText" maxlength="90" value="${escapeHtml(scene.onScreenText)}" ${busy ? 'disabled' : ''} />
+      <label>Lời đọc</label>
+      <textarea data-field="narration" maxlength="320" ${busy ? 'disabled' : ''}>${escapeHtml(scene.narration)}</textarea>
+    </div>`).join('');
+}
+
 function present(plan) {
   state.selected = plan;
   state.sceneIndex = 0;
@@ -72,6 +90,7 @@ function present(plan) {
     state.sceneTimer = setInterval(showScene, 2400);
   }
   updateProgress(plan);
+  renderStoryboardEditor(plan);
   renderLibrary();
 }
 
@@ -85,6 +104,7 @@ function updateProgress(plan) {
 async function loadPlans() {
   state.plans = await api('/api/video-plans');
   renderLibrary();
+  if (!state.selected && state.plans.length) await selectPlan(state.plans[0].id);
 }
 
 async function selectPlan(id) {
@@ -146,6 +166,32 @@ elements.renderButton.addEventListener('click', async () => {
   } catch (error) {
     showMessage(error.message, true);
     elements.renderButton.disabled = false;
+  }
+});
+
+elements.storyboardForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  if (!state.selected) return;
+  elements.saveStoryboardButton.disabled = true;
+  elements.storyboardMessage.textContent = 'Đang lưu thay đổi...';
+  try {
+    const editors = [...elements.sceneEditorList.querySelectorAll('[data-scene-index]')];
+    const scenes = state.selected.scenes.map((scene, index) => ({
+      ...scene,
+      onScreenText: editors[index].querySelector('[data-field="onScreenText"]').value,
+      narration: editors[index].querySelector('[data-field="narration"]').value,
+    }));
+    const plan = await api(`/api/video-plans/${state.selected.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ scenes, voiceProvider: elements.projectVoiceProvider.value }),
+    });
+    present(plan);
+    await loadPlans();
+    elements.storyboardMessage.textContent = 'Đã lưu. Video cũ đã được đặt lại để dựng bản mới.';
+  } catch (error) {
+    elements.storyboardMessage.textContent = error.message;
+  } finally {
+    elements.saveStoryboardButton.disabled = false;
   }
 });
 

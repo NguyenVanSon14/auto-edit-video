@@ -7,6 +7,7 @@ const required = [
   'src/modules/video-plans/video-plan.schema.js',
   'src/modules/video-plans/video-plan.ai.js',
   'src/modules/video-plans/video-plan.renderer.js',
+  'src/modules/video-plans/video-plan.voice.js',
   'public/index.html',
   'README.md',
 ];

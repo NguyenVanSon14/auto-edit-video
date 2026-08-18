@@ -30,6 +30,9 @@
             <div><label for="tone">Phong cách</label><select id="tone" name="tone"><option value="energetic">Năng lượng</option><option value="cinematic">Điện ảnh</option><option value="educational">Giải thích</option><option value="calm">Nhẹ nhàng</option></select></div>
           </div>
 
+          <label for="voiceProvider">Giọng đọc</label>
+          <select id="voiceProvider" name="voiceProvider"><option value="none">Không dùng · miễn phí</option><option value="gemini">Gemini TTS · dùng API</option></select>
+
           <label for="duration">Thời lượng <output id="durationValue">30 giây</output></label>
           <input id="duration" name="durationSeconds" type="range" min="15" max="60" step="5" value="30" />
           <button class="primary-action" id="generateButton" type="submit">Tạo storyboard</button>
@@ -50,6 +53,17 @@
           <a class="secondary-action" id="downloadButton" download hidden>Tải video</a>
         </div>
         <div class="progress-wrap" id="progressWrap" hidden><div class="progress-meta"><span id="progressLabel">Đang xếp hàng</span><span id="progressValue">0%</span></div><progress id="renderProgress" max="100" value="0"></progress></div>
+
+        <section class="storyboard-editor" id="storyboardEditor" aria-labelledby="storyboardTitle" hidden>
+          <div class="editor-heading"><div><p class="eyebrow">STORYBOARD</p><h3 id="storyboardTitle">Chỉnh từng cảnh</h3></div><span id="editorState"></span></div>
+          <form id="storyboardForm">
+            <label for="projectVoiceProvider">Giọng đọc khi render</label>
+            <select id="projectVoiceProvider"><option value="none">Không dùng · miễn phí</option><option value="gemini">Gemini TTS · dùng API</option></select>
+            <div class="scene-editor-list" id="sceneEditorList"></div>
+            <button class="secondary-action" id="saveStoryboardButton" type="submit">Lưu storyboard</button>
+            <p class="form-message" id="storyboardMessage" role="status"></p>
+          </form>
+        </section>
       </section>
 
       <aside class="library" aria-labelledby="libraryTitle">

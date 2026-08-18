@@ -5,6 +5,7 @@ const sharp = require('sharp');
 const ffmpegPath = require('ffmpeg-static');
 const config = require('../../core/config');
 const store = require('./video-plan.store');
+const { generateVoiceover } = require('./video-plan.voice');
 const { AppError } = require('../../core/app-error');
 
 const COLORS = {
@@ -86,13 +87,14 @@ async function makeSceneImages(plan, workDir, onProgress) {
   }
 }
 
-function buildFfmpegArgs(plan, workDir, outputPath) {
+function buildFfmpegArgs(plan, workDir, outputPath, audioPath = null) {
   const args = ['-y'];
   for (let index = 0; index < plan.scenes.length; index += 1) {
     args.push('-loop', '1', '-framerate', String(FPS), '-t', String(plan.scenes[index].durationSeconds), '-i', path.join(workDir, `scene-${index}.png`));
   }
   const totalDuration = plan.scenes.reduce((sum, scene) => sum + scene.durationSeconds, 0);
-  args.push('-f', 'lavfi', '-t', String(totalDuration), '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100');
+  if (audioPath) args.push('-i', audioPath);
+  else args.push('-f', 'lavfi', '-t', String(totalDuration), '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100');
 
   const filters = plan.scenes.map((scene, index) => {
     const fadeOutStart = Math.max(0, scene.durationSeconds - FADE_DURATION);
@@ -105,7 +107,11 @@ function buildFfmpegArgs(plan, workDir, outputPath) {
     '-filter_complex', filters.join(';'),
     '-map', '[video]', '-map', `${plan.scenes.length}:a`,
     '-r', String(FPS), '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p',
-    '-c:a', 'aac', '-b:a', '96k', '-shortest', '-movflags', '+faststart',
+    '-c:a', 'aac', '-b:a', '96k',
+  );
+  if (audioPath) args.push('-af', 'apad');
+  args.push(
+    '-t', String(totalDuration), '-movflags', '+faststart',
     '-progress', 'pipe:2', '-nostats', outputPath,
   );
   return { args, totalDuration };
@@ -144,10 +150,12 @@ async function renderPlan(plan, onProgress = () => {}) {
     onProgress(5);
     await makeSceneImages(plan, workDir, onProgress);
     await sharp(path.join(workDir, 'scene-0.png')).jpeg({ quality: 88 }).toFile(posterPath);
-    const { args, totalDuration } = buildFfmpegArgs(plan, workDir, outputPath);
+    const audioPath = await generateVoiceover(plan, path.join(workDir, 'voiceover.wav'));
+    onProgress(45);
+    const { args, totalDuration } = buildFfmpegArgs(plan, workDir, outputPath, audioPath);
     await runFfmpeg(args, totalDuration, onProgress);
     onProgress(100);
-    return { outputPath, outputUrl: `/renders/${plan.id}.mp4`, posterUrl: `/renders/${plan.id}.jpg` };
+    return { outputPath, outputUrl: `/renders/${plan.id}.mp4`, posterUrl: `/renders/${plan.id}.jpg`, hasVoiceover: Boolean(audioPath) };
   } finally {
     await fs.rm(workDir, { recursive: true, force: true });
   }
@@ -162,7 +170,7 @@ function enqueueRender(id) {
       const result = await renderPlan(plan, (progress) => {
         store.update(id, { progress }).catch((error) => console.error('[render progress]', error.message));
       });
-      await store.update(id, { status: 'ready', progress: 100, outputUrl: result.outputUrl, posterUrl: result.posterUrl });
+      await store.update(id, { status: 'ready', progress: 100, outputUrl: result.outputUrl, posterUrl: result.posterUrl, hasVoiceover: result.hasVoiceover });
     } catch (error) {
       console.error('[render]', error);
       await store.update(id, { status: 'failed', progress: 0, error: error.message });

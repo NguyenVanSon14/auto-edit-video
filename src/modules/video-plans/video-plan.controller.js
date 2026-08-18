@@ -3,7 +3,7 @@ const path = require('node:path');
 const store = require('./video-plan.store');
 const { generateVideoPlan } = require('./video-plan.ai');
 const { enqueueRender } = require('./video-plan.renderer');
-const { generateRequestSchema } = require('./video-plan.schema');
+const { generateRequestSchema, updateVideoPlanSchema } = require('./video-plan.schema');
 const { AppError } = require('../../core/app-error');
 const config = require('../../core/config');
 
@@ -29,6 +29,32 @@ async function detail(req, res) {
   res.json(videoPlan);
 }
 
+async function update(req, res) {
+  const existing = await store.findById(req.params.id);
+  if (!existing) throw new AppError('Video plan not found.', 404, 'PLAN_NOT_FOUND');
+  if (['queued', 'rendering'].includes(existing.status)) {
+    throw new AppError('Wait for the current render to finish before editing.', 409, 'PLAN_BUSY');
+  }
+  const parsed = updateVideoPlanSchema.safeParse(req.body);
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    throw new AppError(`${issue.path.join('.') || 'request'}: ${issue.message}`, 400, 'INVALID_REQUEST');
+  }
+  await Promise.allSettled([
+    fs.rm(path.join(config.renderDir, `${existing.id}.mp4`), { force: true }),
+    fs.rm(path.join(config.renderDir, `${existing.id}.jpg`), { force: true }),
+  ]);
+  const videoPlan = await store.update(existing.id, {
+    ...parsed.data,
+    status: 'draft',
+    progress: 0,
+    outputUrl: null,
+    posterUrl: null,
+    error: null,
+  });
+  res.json(videoPlan);
+}
+
 async function render(req, res) {
   const plan = await store.findById(req.params.id);
   if (!plan) throw new AppError('Video plan not found.', 404, 'PLAN_NOT_FOUND');
@@ -48,4 +74,4 @@ async function remove(req, res) {
   res.status(204).end();
 }
 
-module.exports = { generate, list, detail, render, remove };
+module.exports = { generate, list, detail, update, render, remove };

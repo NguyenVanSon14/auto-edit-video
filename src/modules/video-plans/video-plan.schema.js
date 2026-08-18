@@ -24,7 +24,14 @@ const generateRequestSchema = z.object({
   language: z.enum(['vi', 'en']).default('vi'),
   tone: z.enum(['energetic', 'cinematic', 'educational', 'calm']).default('energetic'),
   durationSeconds: z.coerce.number().int().min(15).max(60).default(30),
+  voiceProvider: z.enum(['none', 'gemini']).default('none'),
 });
+
+const updateVideoPlanSchema = videoPlanSchema
+  .pick({ title: true, description: true, hook: true, scenes: true, hashtags: true })
+  .partial()
+  .extend({ voiceProvider: z.enum(['none', 'gemini']).optional() })
+  .refine((value) => Object.keys(value).length > 0, { message: 'At least one editable field is required.' });
 
 function normalizeDurations(plan, targetDuration) {
   const total = plan.scenes.reduce((sum, scene) => sum + scene.durationSeconds, 0);
@@ -39,4 +46,4 @@ function normalizeDurations(plan, targetDuration) {
   };
 }
 
-module.exports = { PALETTE, videoPlanSchema, generateRequestSchema, normalizeDurations };
+module.exports = { PALETTE, videoPlanSchema, generateRequestSchema, updateVideoPlanSchema, normalizeDurations };

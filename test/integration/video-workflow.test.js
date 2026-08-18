@@ -13,6 +13,8 @@ process.env.MOCK_AI = 'true';
 
 const app = require('../../src/app');
 const { generateMock, parseAiResponse } = require('../../src/modules/video-plans/video-plan.ai');
+const { pcmToWav } = require('../../src/modules/video-plans/video-plan.voice');
+const { buildFfmpegArgs } = require('../../src/modules/video-plans/video-plan.renderer');
 let generatedPlanId;
 
 before(async () => {
@@ -39,12 +41,28 @@ test('generation rejects invalid input and stores a valid storyboard', async () 
   }).expect(201);
   assert.equal(created.body.scenes.length, 6);
   assert.equal(created.body.status, 'draft');
+  assert.equal(created.body.voiceProvider, 'none');
   generatedPlanId = created.body.id;
 
   const detail = await request(app).get(`/api/video-plans/${created.body.id}`).expect(200);
   assert.equal(detail.body.title, created.body.title);
   const listing = await request(app).get('/api/video-plans').expect(200);
   assert.equal(listing.body[0].sceneCount, 6);
+});
+
+test('storyboard can be edited before rendering', async () => {
+  const current = (await request(app).get(`/api/video-plans/${generatedPlanId}`).expect(200)).body;
+  const scenes = current.scenes.map((scene, index) => ({
+    ...scene,
+    onScreenText: index === 0 ? 'BẮT ĐẦU TỪ VIỆC QUAN TRỌNG' : scene.onScreenText,
+  }));
+  const updated = await request(app)
+    .patch(`/api/video-plans/${generatedPlanId}`)
+    .send({ scenes, voiceProvider: 'none' })
+    .expect(200);
+  assert.equal(updated.body.scenes[0].onScreenText, 'BẮT ĐẦU TỪ VIỆC QUAN TRỌNG');
+  assert.equal(updated.body.status, 'draft');
+  assert.equal(updated.body.outputUrl, null);
 });
 
 test('AI parser accepts fenced JSON and rejects malformed plans', () => {
@@ -55,6 +73,22 @@ test('AI parser accepts fenced JSON and rejects malformed plans', () => {
   assert.equal(longPlan.scenes.length, 8);
   assert.ok(longPlan.scenes.every((scene) => scene.durationSeconds <= 8));
   assert.throws(() => parseAiResponse('{"topic":"missing fields"}', 30), /failed validation/);
+});
+
+test('PCM audio is wrapped in a valid WAV container without a network call', () => {
+  const wav = pcmToWav(Buffer.alloc(480));
+  assert.equal(wav.toString('ascii', 0, 4), 'RIFF');
+  assert.equal(wav.toString('ascii', 8, 12), 'WAVE');
+  assert.equal(wav.readUInt32LE(40), 480);
+  assert.equal(wav.length, 524);
+});
+
+test('renderer maps an optional voice track and pads short narration', () => {
+  const plan = generateMock({ niche: 'focus', language: 'en', durationSeconds: 30 });
+  const { args } = buildFfmpegArgs(plan, tempRoot, 'output.mp4', 'voiceover.wav');
+  assert.ok(args.includes('voiceover.wav'));
+  assert.ok(args.includes('apad'));
+  assert.ok(!args.includes('anullsrc=channel_layout=stereo:sample_rate=44100'));
 });
 
 test('render endpoint reaches ready with a playable MP4 and poster', { timeout: 90_000 }, async () => {

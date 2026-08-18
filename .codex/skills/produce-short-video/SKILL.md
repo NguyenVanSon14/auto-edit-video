@@ -12,9 +12,11 @@ Follow the repository's single supported flow: topic -> validated storyboard -> 
 1. Read `README.md` and inspect `src/modules/video-plans/video-plan.schema.js` before changing the plan contract.
 2. Preserve the 5-8 scene structure. Give each scene one narration line, brief on-screen text, a filmable visual direction, a 2.5-8 second duration, and a supported accent.
 3. Use `POST /api/video-plans/generate` to create plans. Do not write runtime JSON by hand.
-4. Use `POST /api/video-plans/:id/render` to queue rendering. Poll the detail endpoint until `ready` or `failed`.
-5. Verify the output exists, has a poster, uses a 9:16 frame, and plays as H.264 MP4 before reporting success.
-6. Run `node .codex/skills/produce-short-video/scripts/check-workflow.js` after code or prompt changes.
+4. Use `PATCH /api/video-plans/:id` for edits. Preserve non-edited scene fields and expect the previous render to be invalidated.
+5. Keep `voiceProvider=none` unless the user explicitly requests Gemini TTS and accepts an API call.
+6. Use `POST /api/video-plans/:id/render` to queue rendering. Poll the detail endpoint until `ready` or `failed`.
+7. Verify the output exists, has a poster, uses a 9:16 frame, and plays as H.264 MP4 before reporting success.
+8. Run `node .codex/skills/produce-short-video/scripts/check-workflow.js` after code or prompt changes.
 
 ## Guard content quality
 

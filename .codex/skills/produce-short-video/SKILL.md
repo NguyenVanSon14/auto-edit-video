@@ -5,20 +5,21 @@ description: Create, repair, render, and validate vertical short-video projects 
 
 # Produce Short Video
 
-Follow the repository's single supported flow: topic -> validated storyboard -> queued render -> playable MP4. Keep mock mode working so the project remains usable without external keys.
+Follow the repository's single supported flow: production brief -> validated storyboard -> media/audio plan -> human approval -> queued render -> playable MP4. Keep mock mode working so the project remains usable without external keys. Read `docs/PRODUCTION_WORKFLOW.md` before changing behavior.
 
 ## Execute the workflow
 
 1. Read `README.md` and inspect `src/modules/video-plans/video-plan.schema.js` before changing the plan contract.
 2. Preserve the 5-8 scene structure. Give each scene one narration line, brief on-screen text, a filmable visual direction, a 2.5-8 second duration, and a supported accent.
-3. Use `POST /api/video-plans/generate` to create plans. Do not write runtime JSON by hand.
+3. Build a complete brief with objective, target audience, platform, duration, language, tone, and visual style. Use `POST /api/video-plans/generate`; do not write runtime JSON by hand.
 4. Use `PATCH /api/video-plans/:id` for edits. Preserve non-edited scene fields and expect the previous render to be invalidated.
 5. Keep `voiceProvider=none` unless the user explicitly requests Gemini TTS and accepts an API call.
 6. Use only `backgroundAsset` values allowed by the scene schema. Keep the bundled focus images limited to the focus mock; do not attach them to unrelated AI topics.
 7. Run `npm run assets:prepare` only after replacing the source atlas in `assets/demo-focus/`.
-8. Use `POST /api/video-plans/:id/render` to queue rendering. Poll the detail endpoint until `ready` or `failed`.
-9. Verify the output exists, has a poster, uses a 9:16 frame, and plays as H.264 MP4 before reporting success.
-10. Run `node .codex/skills/produce-short-video/scripts/check-workflow.js` after code or prompt changes.
+8. Review narration, on-screen copy, visual direction, pacing, and media relevance for every scene. Set `approvedForRender=true` through `PATCH`; never bypass this gate.
+9. Use `POST /api/video-plans/:id/render` to queue rendering. Poll the detail endpoint until `ready` or `failed`.
+10. Verify the output exists, has a poster, uses a 9:16 frame, and plays as H.264 MP4 before reporting success.
+11. Run `node .codex/skills/produce-short-video/scripts/check-workflow.js` after code or prompt changes.
 
 ## Guard content quality
 

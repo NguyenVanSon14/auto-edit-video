@@ -11,11 +11,11 @@
 | Voice generation | `src/modules/video-plans/video-plan.voice.js` | Optional Gemini PCM converted to WAV |
 | Media generation | Sharp + bundled FFmpeg | JPEG poster and H.264/AAC MP4 |
 | Demo visuals | `assets/demo-focus/` | Generated atlas and three portrait scene backgrounds |
-| User workflow | `public/` | Create, preview, render, download, delete |
+| User workflow | `public/` | Brief, edit, approve, preview, render, download, delete |
 
 ## Status transitions
 
-`draft -> queued -> rendering -> ready`
+`draft (unapproved) -> draft (approved) -> queued -> rendering -> ready`
 
 Any render error changes `rendering` to `failed`. A user may submit render again from `failed` or `ready`. Do not introduce a state that the dashboard cannot display.
 
@@ -29,3 +29,5 @@ Any render error changes `rendering` to `failed`. A user may submit render again
 - Keep writes atomic and mutations sequential.
 - Store runtime artifacts only under the configured data and render directories.
 - Make voice generation opt-in; tests must not call paid APIs.
+- Reject render requests until the user explicitly approves the current draft.
+- Reset approval whenever storyboard content changes.

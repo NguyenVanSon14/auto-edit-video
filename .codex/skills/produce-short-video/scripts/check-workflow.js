@@ -10,6 +10,8 @@ const required = [
   'src/modules/video-plans/video-plan.voice.js',
   'public/index.html',
   'assets/demo-focus/focused.jpg',
+  'docs/AI_VIDEO_BENCHMARK.md',
+  'docs/PRODUCTION_WORKFLOW.md',
   'README.md',
 ];
 

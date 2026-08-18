@@ -27,6 +27,10 @@ const videoPlanSchema = z.object({
 
 const generateRequestSchema = z.object({
   niche: z.string().trim().min(2).max(120),
+  objective: z.enum(['awareness', 'education', 'conversion']).default('education'),
+  targetAudience: z.string().trim().min(2).max(120).default('Người xem mạng xã hội'),
+  platform: z.enum(['tiktok', 'reels', 'shorts']).default('tiktok'),
+  visualStyle: z.enum(['realistic', 'cinematic', 'minimal']).default('realistic'),
   language: z.enum(['vi', 'en']).default('vi'),
   tone: z.enum(['energetic', 'cinematic', 'educational', 'calm']).default('energetic'),
   durationSeconds: z.coerce.number().int().min(15).max(60).default(30),
@@ -36,7 +40,10 @@ const generateRequestSchema = z.object({
 const updateVideoPlanSchema = videoPlanSchema
   .pick({ title: true, description: true, hook: true, scenes: true, hashtags: true })
   .partial()
-  .extend({ voiceProvider: z.enum(['none', 'gemini']).optional() })
+  .extend({
+    voiceProvider: z.enum(['none', 'gemini']).optional(),
+    approvedForRender: z.boolean().optional(),
+  })
   .refine((value) => Object.keys(value).length > 0, { message: 'At least one editable field is required.' });
 
 function normalizeDurations(plan, targetDuration) {

@@ -18,11 +18,17 @@ const JSON_SHAPE = `{
   "hashtags": ["#example"]
 }`;
 
-function buildPrompt({ niche, language, tone, durationSeconds }) {
+function buildPrompt({ niche, objective, targetAudience, platform, visualStyle, language, tone, durationSeconds }) {
   const languageName = language === 'vi' ? 'natural Vietnamese' : 'natural English';
   return `Act as a senior short-form video producer. Create one original ${durationSeconds}-second vertical video about "${niche}".
 
-Write in ${languageName}. Use a ${tone} tone. Start with tension or curiosity, deliver one useful idea, and end with a concrete payoff or call to action. Create ${durationSeconds > 48 ? 'exactly 8' : '5-8'} scenes. Each scene must have concise narration, on-screen text readable in under two seconds, a filmable copyright-safe visual direction, duration, and one accent from: coral, mint, gold, sky, rose. Keep total scene duration close to ${durationSeconds} seconds. Use no copyrighted characters, brands, lyrics, or copied scripts.
+Production brief:
+- Objective: ${objective}
+- Target audience: ${targetAudience}
+- Publishing platform: ${platform}
+- Visual style: ${visualStyle}
+
+Write in ${languageName}. Use a ${tone} tone. Start with tension or curiosity, deliver one useful idea, and end with a concrete payoff or call to action appropriate for the objective. Create ${durationSeconds > 48 ? 'exactly 8' : '5-8'} scenes. Each scene must have concise narration, on-screen text readable in under two seconds, and a specific copyright-safe visual direction that names subject, action, setting, framing, and lighting. Keep visual continuity across scenes. Add duration and one accent from: coral, mint, gold, sky, rose. Keep total scene duration close to ${durationSeconds} seconds. Use no copyrighted characters, brands, lyrics, or copied scripts.
 
 Return only valid JSON matching this exact shape and no extra fields:
 ${JSON_SHAPE}`;

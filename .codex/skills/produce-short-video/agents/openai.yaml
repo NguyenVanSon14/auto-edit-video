@@ -1,4 +1,4 @@
 interface:
   display_name: "Produce Short Video"
   short_description: "Build and verify polished vertical videos"
-  default_prompt: "Use $produce-short-video to create and render a polished vertical short from my topic."
+  default_prompt: "Use $produce-short-video to turn my production brief into an editable storyboard, review its media and pacing, then render a validated vertical short."

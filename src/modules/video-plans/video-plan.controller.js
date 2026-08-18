@@ -40,12 +40,14 @@ async function update(req, res) {
     const issue = parsed.error.issues[0];
     throw new AppError(`${issue.path.join('.') || 'request'}: ${issue.message}`, 400, 'INVALID_REQUEST');
   }
+  const changesProduction = Object.keys(parsed.data).some((key) => key !== 'approvedForRender');
   await Promise.allSettled([
     fs.rm(path.join(config.renderDir, `${existing.id}.mp4`), { force: true }),
     fs.rm(path.join(config.renderDir, `${existing.id}.jpg`), { force: true }),
   ]);
   const videoPlan = await store.update(existing.id, {
     ...parsed.data,
+    approvedForRender: changesProduction ? false : parsed.data.approvedForRender,
     status: 'draft',
     progress: 0,
     outputUrl: null,
@@ -58,6 +60,9 @@ async function update(req, res) {
 async function render(req, res) {
   const plan = await store.findById(req.params.id);
   if (!plan) throw new AppError('Video plan not found.', 404, 'PLAN_NOT_FOUND');
+  if (!plan.approvedForRender) {
+    throw new AppError('Review and approve the storyboard before rendering.', 409, 'STORYBOARD_NOT_APPROVED');
+  }
   if (plan.status === 'rendering') return res.status(202).json(plan);
   await store.update(plan.id, { status: 'queued', progress: 0, error: null });
   enqueueRender(plan.id);

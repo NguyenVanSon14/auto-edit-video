@@ -25,6 +25,17 @@
           <label for="niche">Chủ đề</label>
           <textarea id="niche" name="niche" rows="4" maxlength="120" placeholder="Ví dụ: 3 cách tập trung khi làm việc tại nhà" required></textarea>
 
+          <label for="targetAudience">Đối tượng xem</label>
+          <input id="targetAudience" name="targetAudience" type="text" maxlength="120" value="Người đi làm 22-35 tuổi" required />
+
+          <div class="field-row">
+            <div><label for="objective">Mục tiêu</label><select id="objective" name="objective"><option value="education">Giáo dục</option><option value="awareness">Nhận diện</option><option value="conversion">Chuyển đổi</option></select></div>
+            <div><label for="platform">Nền tảng</label><select id="platform" name="platform"><option value="tiktok">TikTok</option><option value="reels">Instagram Reels</option><option value="shorts">YouTube Shorts</option></select></div>
+          </div>
+
+          <label for="visualStyle">Phong cách hình ảnh</label>
+          <select id="visualStyle" name="visualStyle"><option value="realistic">Đời thực</option><option value="cinematic">Điện ảnh</option><option value="minimal">Tối giản</option></select>
+
           <div class="field-row">
             <div><label for="language">Ngôn ngữ</label><select id="language" name="language"><option value="vi">Tiếng Việt</option><option value="en">English</option></select></div>
             <div><label for="tone">Phong cách</label><select id="tone" name="tone"><option value="energetic">Năng lượng</option><option value="cinematic">Điện ảnh</option><option value="educational">Giải thích</option><option value="calm">Nhẹ nhàng</option></select></div>
@@ -60,6 +71,7 @@
             <label for="projectVoiceProvider">Giọng đọc khi render</label>
             <select id="projectVoiceProvider"><option value="none">Không dùng · miễn phí</option><option value="gemini">Gemini TTS · dùng API</option></select>
             <div class="scene-editor-list" id="sceneEditorList"></div>
+            <label class="approval-check"><input id="approvedForRender" type="checkbox" /> <span>Tôi đã kiểm tra nội dung, hình ảnh, nhịp cảnh và đồng ý dựng video.</span></label>
             <button class="secondary-action" id="saveStoryboardButton" type="submit">Lưu storyboard</button>
             <p class="form-message" id="storyboardMessage" role="status"></p>
           </form>

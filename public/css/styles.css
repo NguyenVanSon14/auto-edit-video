@@ -81,6 +81,8 @@ progress::-webkit-progress-value { background: var(--mint); }
 .scene-editor textarea { min-height: 72px; padding: 10px; font-size: 12px; }
 .scene-editor input { font-size: 12px; }
 .storyboard-editor :disabled { opacity: .6; cursor: not-allowed; }
+.approval-check { justify-content: flex-start; align-items: flex-start; gap: 9px; padding: 12px; border: 1px solid var(--line); border-radius: 4px; line-height: 1.45; }
+.approval-check input { margin: 2px 0 0; accent-color: var(--mint); }
 
 .project-list { display: grid; gap: 8px; }
 .project-card { border: 1px solid var(--line); border-radius: 6px; padding: 13px; cursor: pointer; background: var(--panel); transition: border-color .15s ease; }

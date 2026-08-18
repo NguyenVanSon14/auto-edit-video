@@ -5,6 +5,7 @@ const elements = Object.fromEntries([
   'sceneText', 'sceneNarration', 'previewActions', 'renderButton', 'downloadButton', 'progressWrap',
   'progressLabel', 'progressValue', 'renderProgress', 'storyboardEditor', 'storyboardForm',
   'sceneEditorList', 'saveStoryboardButton', 'storyboardMessage', 'projectVoiceProvider', 'editorState',
+  'approvedForRender',
 ].map((id) => [id, document.getElementById(id)]));
 
 async function api(path, options) {
@@ -53,7 +54,9 @@ function renderStoryboardEditor(plan) {
   const busy = ['queued', 'rendering'].includes(plan.status);
   elements.storyboardEditor.hidden = false;
   elements.projectVoiceProvider.value = plan.voiceProvider || 'none';
+  elements.approvedForRender.checked = Boolean(plan.approvedForRender);
   elements.projectVoiceProvider.disabled = busy;
+  elements.approvedForRender.disabled = busy;
   elements.saveStoryboardButton.disabled = busy;
   elements.editorState.textContent = busy ? statusText(plan.status) : `${plan.scenes.length} cảnh`;
   elements.sceneEditorList.innerHTML = plan.scenes.map((scene, index) => `
@@ -63,6 +66,8 @@ function renderStoryboardEditor(plan) {
       <input type="text" data-field="onScreenText" maxlength="90" value="${escapeHtml(scene.onScreenText)}" ${busy ? 'disabled' : ''} />
       <label>Lời đọc</label>
       <textarea data-field="narration" maxlength="320" ${busy ? 'disabled' : ''}>${escapeHtml(scene.narration)}</textarea>
+      <label>Chỉ dẫn hình ảnh</label>
+      <textarea data-field="visual" maxlength="180" ${busy ? 'disabled' : ''}>${escapeHtml(scene.visual)}</textarea>
     </div>`).join('');
 }
 
@@ -76,6 +81,7 @@ function present(plan) {
   elements.posterPreview.hidden = true;
   elements.previewCopy.hidden = plan.status === 'ready';
   elements.renderButton.disabled = ['queued', 'rendering'].includes(plan.status);
+  elements.renderButton.disabled ||= !plan.approvedForRender;
   elements.renderButton.textContent = plan.status === 'ready' ? 'Dựng lại MP4' : 'Dựng MP4';
   elements.downloadButton.hidden = plan.status !== 'ready';
   elements.progressWrap.hidden = !['queued', 'rendering', 'failed'].includes(plan.status);
@@ -180,10 +186,14 @@ elements.storyboardForm.addEventListener('submit', async (event) => {
       ...scene,
       onScreenText: editors[index].querySelector('[data-field="onScreenText"]').value,
       narration: editors[index].querySelector('[data-field="narration"]').value,
+      visual: editors[index].querySelector('[data-field="visual"]').value,
     }));
     const plan = await api(`/api/video-plans/${state.selected.id}`, {
       method: 'PATCH',
-      body: JSON.stringify({ scenes, voiceProvider: elements.projectVoiceProvider.value }),
+      body: JSON.stringify({
+        scenes,
+        voiceProvider: elements.projectVoiceProvider.value,
+      }),
     });
     present(plan);
     await loadPlans();
@@ -192,6 +202,30 @@ elements.storyboardForm.addEventListener('submit', async (event) => {
     elements.storyboardMessage.textContent = error.message;
   } finally {
     elements.saveStoryboardButton.disabled = false;
+  }
+});
+
+elements.approvedForRender.addEventListener('change', async () => {
+  if (!state.selected) return;
+  elements.approvedForRender.disabled = true;
+  elements.storyboardMessage.textContent = elements.approvedForRender.checked
+    ? 'Đang xác nhận storyboard...'
+    : 'Đang hủy xác nhận...';
+  try {
+    const plan = await api(`/api/video-plans/${state.selected.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ approvedForRender: elements.approvedForRender.checked }),
+    });
+    present(plan);
+    await loadPlans();
+    elements.storyboardMessage.textContent = plan.approvedForRender
+      ? 'Storyboard đã được duyệt và sẵn sàng để dựng.'
+      : 'Đã hủy duyệt storyboard.';
+  } catch (error) {
+    elements.approvedForRender.checked = !elements.approvedForRender.checked;
+    elements.storyboardMessage.textContent = error.message;
+  } finally {
+    elements.approvedForRender.disabled = false;
   }
 });
 

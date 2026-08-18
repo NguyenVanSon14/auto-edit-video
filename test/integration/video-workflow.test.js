@@ -43,6 +43,10 @@ test('generation rejects invalid input and stores a valid storyboard', async () 
   assert.ok(created.body.scenes.every((scene) => scene.backgroundAsset?.startsWith('demo-focus/')));
   assert.equal(created.body.status, 'draft');
   assert.equal(created.body.voiceProvider, 'none');
+  assert.equal(created.body.objective, 'education');
+  assert.equal(created.body.platform, 'tiktok');
+  assert.equal(created.body.visualStyle, 'realistic');
+  assert.equal(created.body.approvedForRender, false);
   generatedPlanId = created.body.id;
 
   const detail = await request(app).get(`/api/video-plans/${created.body.id}`).expect(200);
@@ -64,6 +68,25 @@ test('storyboard can be edited before rendering', async () => {
   assert.equal(updated.body.scenes[0].onScreenText, 'BẮT ĐẦU TỪ VIỆC QUAN TRỌNG');
   assert.equal(updated.body.status, 'draft');
   assert.equal(updated.body.outputUrl, null);
+});
+
+test('render requires an explicit storyboard approval', async () => {
+  const rejected = await request(app).post(`/api/video-plans/${generatedPlanId}/render`).expect(409);
+  assert.equal(rejected.body.error.code, 'STORYBOARD_NOT_APPROVED');
+  const approved = await request(app)
+    .patch(`/api/video-plans/${generatedPlanId}`)
+    .send({ approvedForRender: true })
+    .expect(200);
+  assert.equal(approved.body.approvedForRender, true);
+  const revised = await request(app)
+    .patch(`/api/video-plans/${generatedPlanId}`)
+    .send({ title: `${approved.body.title} v2` })
+    .expect(200);
+  assert.equal(revised.body.approvedForRender, false);
+  await request(app)
+    .patch(`/api/video-plans/${generatedPlanId}`)
+    .send({ approvedForRender: true })
+    .expect(200);
 });
 
 test('AI parser accepts fenced JSON and rejects malformed plans', () => {

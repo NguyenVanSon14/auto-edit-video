@@ -54,6 +54,7 @@ async function create(input) {
       id: crypto.randomUUID(),
       ...input,
       status: 'draft',
+      approvedForRender: false,
       progress: 0,
       outputUrl: null,
       error: null,

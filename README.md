@@ -42,12 +42,18 @@ Mỗi tính năng nghiệp vụ nằm trong một thư mục dưới `src/module
 
 ## Quy trình
 
-1. Nhập chủ đề, ngôn ngữ, phong cách và thời lượng 15-60 giây.
+1. Nhập production brief: chủ đề, mục tiêu, đối tượng, nền tảng, ngôn ngữ, phong cách hình ảnh và thời lượng 15-60 giây.
 2. API tạo storyboard 5-8 cảnh và kiểm tra chặt cấu trúc đầu ra.
-3. Sửa chữ trên màn hình, lời đọc và lựa chọn voice-over cho từng dự án.
-4. Nhấn **Dựng MP4**. Job được xếp hàng và cập nhật tiến độ trên giao diện.
-5. Renderer tạo video H.264 dọc 720x1280, hiệu ứng chuyển cảnh, poster và voice-over tùy chọn.
-6. Xem trước hoặc tải file trong thư viện dự án.
+3. Sửa chữ trên màn hình, lời đọc, chỉ dẫn hình ảnh và lựa chọn voice-over cho từng dự án.
+4. Kiểm tra toàn bộ storyboard và xác nhận duyệt. Dự án chưa duyệt không thể render.
+5. Nhấn **Dựng MP4**. Job được xếp hàng và cập nhật tiến độ trên giao diện.
+6. Renderer tạo video H.264 dọc 720x1280, hiệu ứng chuyển cảnh, poster và voice-over tùy chọn.
+7. Xem trước hoặc tải file trong thư viện dự án.
+
+Tài liệu chi tiết:
+
+- [Quy trình sản xuất chuẩn](docs/PRODUCTION_WORKFLOW.md)
+- [Nghiên cứu các công cụ AI video](docs/AI_VIDEO_BENCHMARK.md)
 
 Video kết hợp ảnh nền thật và kinetic typography. Storyboard mock dùng bộ ảnh đồng nhất trong `assets/demo-focus/`; nội dung AI khác vẫn có thể dùng nền typography khi chưa có asset phù hợp. Mặc định renderer dùng audio im lặng; chỉ gọi Gemini TTS khi người dùng chủ động chọn trên giao diện. Trường `visual` trong mỗi cảnh là chỉ dẫn B-roll để mở rộng pipeline sau này.
 

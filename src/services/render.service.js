@@ -17,7 +17,7 @@ const COLORS = {
 const WIDTH = Number.parseInt(process.env.RENDER_WIDTH || '720', 10);
 const HEIGHT = Number.parseInt(process.env.RENDER_HEIGHT || '1280', 10);
 const FPS = 30;
-const TRANSITION = 0.35;
+const FADE_DURATION = 0.25;
 let renderQueue = Promise.resolve();
 
 function escapeXml(value) {
@@ -91,21 +91,15 @@ function buildFfmpegArgs(plan, workDir, outputPath) {
   for (let index = 0; index < plan.scenes.length; index += 1) {
     args.push('-loop', '1', '-framerate', String(FPS), '-t', String(plan.scenes[index].durationSeconds), '-i', path.join(workDir, `scene-${index}.png`));
   }
-  const totalDuration = plan.scenes.reduce((sum, scene) => sum + scene.durationSeconds, 0) - TRANSITION * (plan.scenes.length - 1);
+  const totalDuration = plan.scenes.reduce((sum, scene) => sum + scene.durationSeconds, 0);
   args.push('-f', 'lavfi', '-t', String(totalDuration), '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100');
 
-  const filters = plan.scenes.map((scene, index) =>
-    `[${index}:v]scale=${WIDTH}:${HEIGHT},fps=${FPS},settb=AVTB,format=yuv420p,setpts=PTS-STARTPTS[v${index}]`,
-  );
-  let previous = 'v0';
-  let elapsed = plan.scenes[0].durationSeconds;
-  for (let index = 1; index < plan.scenes.length; index += 1) {
-    const output = index === plan.scenes.length - 1 ? 'video' : `x${index}`;
-    const offset = Math.max(0, elapsed - TRANSITION * index);
-    filters.push(`[${previous}][v${index}]xfade=transition=fade:duration=${TRANSITION}:offset=${offset.toFixed(2)}[${output}]`);
-    previous = output;
-    elapsed += plan.scenes[index].durationSeconds;
-  }
+  const filters = plan.scenes.map((scene, index) => {
+    const fadeOutStart = Math.max(0, scene.durationSeconds - FADE_DURATION);
+    return `[${index}:v]scale=${WIDTH}:${HEIGHT},fps=${FPS},format=yuv420p,trim=duration=${scene.durationSeconds},settb=AVTB,setpts=PTS-STARTPTS,fade=t=in:st=0:d=${FADE_DURATION},fade=t=out:st=${fadeOutStart}:d=${FADE_DURATION}[v${index}]`;
+  });
+  const concatInputs = plan.scenes.map((scene, index) => `[v${index}]`).join('');
+  filters.push(`${concatInputs}concat=n=${plan.scenes.length}:v=1:a=0[video]`);
 
   args.push(
     '-filter_complex', filters.join(';'),

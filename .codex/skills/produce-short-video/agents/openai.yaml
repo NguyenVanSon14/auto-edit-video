@@ -1,0 +1,4 @@
+interface:
+  display_name: "Produce Short Video"
+  short_description: "Build and verify polished vertical videos"
+  default_prompt: "Use $produce-short-video to create and render a polished vertical short from my topic."

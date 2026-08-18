@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#111315" />
+    <title>Auto Edit Video</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">AE</span><strong>Auto Edit Video</strong></div>
+      <div class="server-state"><span class="status-dot"></span><span id="serverLabel">Đang kết nối</span></div>
+    </header>
+
+    <main class="workspace">
+      <section class="composer" aria-labelledby="composerTitle">
+        <div class="section-heading">
+          <div><p class="eyebrow">NEW PROJECT</p><h1 id="composerTitle">Tạo video ngắn</h1></div>
+          <span class="step-label">01 / 03</span>
+        </div>
+
+        <form id="generateForm">
+          <label for="niche">Chủ đề</label>
+          <textarea id="niche" name="niche" rows="4" maxlength="120" placeholder="Ví dụ: 3 cách tập trung khi làm việc tại nhà" required></textarea>
+
+          <div class="field-row">
+            <div><label for="language">Ngôn ngữ</label><select id="language" name="language"><option value="vi">Tiếng Việt</option><option value="en">English</option></select></div>
+            <div><label for="tone">Phong cách</label><select id="tone" name="tone"><option value="energetic">Năng lượng</option><option value="cinematic">Điện ảnh</option><option value="educational">Giải thích</option><option value="calm">Nhẹ nhàng</option></select></div>
+          </div>
+
+          <label for="duration">Thời lượng <output id="durationValue">30 giây</output></label>
+          <input id="duration" name="durationSeconds" type="range" min="15" max="60" step="5" value="30" />
+          <button class="primary-action" id="generateButton" type="submit">Tạo storyboard</button>
+          <p class="form-message" id="formMessage" role="status"></p>
+        </form>
+      </section>
+
+      <section class="preview-stage" aria-labelledby="previewTitle">
+        <div class="section-heading preview-heading"><div><p class="eyebrow">PREVIEW</p><h2 id="previewTitle">Bản dựng</h2></div><span class="step-label">02 / 03</span></div>
+        <div class="phone-frame" id="previewFrame">
+          <div class="empty-preview" id="emptyPreview"><span class="preview-index">9:16</span><p>Storyboard mới sẽ xuất hiện tại đây.</p></div>
+          <video id="videoPreview" controls playsinline hidden></video>
+          <img id="posterPreview" alt="Ảnh xem trước của video" hidden />
+          <div class="preview-copy" id="previewCopy" hidden><span id="sceneCounter"></span><h3 id="sceneText"></h3><p id="sceneNarration"></p></div>
+        </div>
+        <div class="preview-actions" id="previewActions" hidden>
+          <button class="primary-action" id="renderButton" type="button">Dựng MP4</button>
+          <a class="secondary-action" id="downloadButton" download hidden>Tải video</a>
+        </div>
+        <div class="progress-wrap" id="progressWrap" hidden><div class="progress-meta"><span id="progressLabel">Đang xếp hàng</span><span id="progressValue">0%</span></div><progress id="renderProgress" max="100" value="0"></progress></div>
+      </section>
+
+      <aside class="library" aria-labelledby="libraryTitle">
+        <div class="section-heading"><div><p class="eyebrow">LIBRARY</p><h2 id="libraryTitle">Dự án</h2></div><span class="step-label">03 / 03</span></div>
+        <div id="projectList" class="project-list"></div>
+      </aside>
+    </main>
+  </body>
+</html>

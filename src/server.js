@@ -1,6 +1,6 @@
 require('dotenv').config();
 const app = require('./app');
-const config = require('./config');
+const config = require('./core/config');
 
 const server = app.listen(config.port, () => {
   console.log(`Auto Edit Video is ready at http://localhost:${config.port}`);

@@ -1,8 +1,8 @@
 require('dotenv').config();
 const fs = require('node:fs/promises');
 const path = require('node:path');
-const { generateMock } = require('../src/services/ai.service');
-const { renderPlan } = require('../src/services/render.service');
+const { generateMock } = require('../src/modules/video-plans/video-plan.ai');
+const { renderPlan } = require('../src/modules/video-plans/video-plan.renderer');
 
 async function main() {
   const plan = {

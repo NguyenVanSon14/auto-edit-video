@@ -3,9 +3,9 @@ const path = require('node:path');
 const { spawn } = require('node:child_process');
 const sharp = require('sharp');
 const ffmpegPath = require('ffmpeg-static');
-const config = require('../config');
-const store = require('./planStore.service');
-const { AppError } = require('../lib/errors');
+const config = require('../../core/config');
+const store = require('./video-plan.store');
+const { AppError } = require('../../core/app-error');
 
 const COLORS = {
   coral: '#ff6b57',

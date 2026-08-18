@@ -14,6 +14,31 @@ npm run dev
 
 Mở `http://localhost:3001`. Cấu hình mặc định `MOCK_AI=true` không cần API key và không cần PostgreSQL hay FFmpeg cài toàn hệ thống.
 
+## Cấu trúc dự án
+
+```text
+auto-edit-video/
+├── .codex/skills/produce-short-video/  # Skill vận hành và kiểm tra workflow
+├── .github/workflows/                  # GitHub Actions
+├── data/                               # Dữ liệu runtime, không commit
+├── public/
+│   ├── css/                            # Giao diện
+│   ├── js/                             # Logic dashboard trên trình duyệt
+│   └── index.html
+├── renders/                            # MP4 và poster, không commit
+├── scripts/                            # Tiện ích chạy bằng CLI
+├── src/
+│   ├── core/                           # Cấu hình và thành phần dùng chung
+│   ├── modules/
+│   │   ├── health/                     # Health endpoint
+│   │   └── video-plans/                # Toàn bộ workflow tạo và dựng video
+│   ├── app.js                          # Ghép middleware và routes
+│   └── server.js                       # Khởi động và dừng HTTP server
+└── test/integration/                   # Test workflow từ API đến MP4
+```
+
+Mỗi tính năng nghiệp vụ nằm trong một thư mục dưới `src/modules/`. Module `video-plans` tự sở hữu schema, AI, lưu trữ, renderer, controller và routes; `src/core/` chỉ chứa hạ tầng dùng chung. Khi thêm tính năng mới, tạo module mới thay vì đưa thêm logic vào `app.js` hoặc `server.js`.
+
 ## Quy trình
 
 1. Nhập chủ đề, ngôn ngữ, phong cách và thời lượng 15-60 giây.

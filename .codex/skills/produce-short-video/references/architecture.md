@@ -4,10 +4,10 @@
 
 | Stage | Owner | Output |
 | --- | --- | --- |
-| Request validation | `src/schemas/videoPlan.schema.js` | Normalized generation options |
-| Story generation | `src/services/ai.service.js` | Validated 5-8 scene plan |
-| Persistence | `src/services/planStore.service.js` | Atomic `data/video-plans.json` update |
-| Job control | `src/services/render.service.js` | Serialized render and progress updates |
+| Request validation | `src/modules/video-plans/video-plan.schema.js` | Normalized generation options |
+| Story generation | `src/modules/video-plans/video-plan.ai.js` | Validated 5-8 scene plan |
+| Persistence | `src/modules/video-plans/video-plan.store.js` | Atomic `data/video-plans.json` update |
+| Job control | `src/modules/video-plans/video-plan.renderer.js` | Serialized render and progress updates |
 | Media generation | Sharp + bundled FFmpeg | JPEG poster and H.264/AAC MP4 |
 | User workflow | `public/` | Create, preview, render, download, delete |
 

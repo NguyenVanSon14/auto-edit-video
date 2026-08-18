@@ -1,11 +1,11 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
-const store = require('../services/planStore.service');
-const { generateVideoPlan } = require('../services/ai.service');
-const { enqueueRender } = require('../services/render.service');
-const { generateRequestSchema } = require('../schemas/videoPlan.schema');
-const { AppError } = require('../lib/errors');
-const config = require('../config');
+const store = require('./video-plan.store');
+const { generateVideoPlan } = require('./video-plan.ai');
+const { enqueueRender } = require('./video-plan.renderer');
+const { generateRequestSchema } = require('./video-plan.schema');
+const { AppError } = require('../../core/app-error');
+const config = require('../../core/config');
 
 async function generate(req, res) {
   const parsed = generateRequestSchema.safeParse(req.body);

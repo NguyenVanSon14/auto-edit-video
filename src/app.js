@@ -1,10 +1,10 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const config = require('./config');
-const healthRoutes = require('./routes/health.routes');
-const videoPlanRoutes = require('./routes/videoPlan.routes');
-const { AppError } = require('./lib/errors');
+const config = require('./core/config');
+const healthRoutes = require('./modules/health/health.routes');
+const videoPlanRoutes = require('./modules/video-plans/video-plan.routes');
+const { AppError } = require('./core/app-error');
 
 const app = express();
 

@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-const rootDir = path.resolve(__dirname, '..');
+const rootDir = path.resolve(__dirname, '..', '..');
 
 function resolveFromRoot(value, fallback) {
   return path.resolve(rootDir, value || fallback);

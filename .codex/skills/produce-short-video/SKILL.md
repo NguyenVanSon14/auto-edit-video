@@ -9,7 +9,7 @@ Follow the repository's single supported flow: topic -> validated storyboard -> 
 
 ## Execute the workflow
 
-1. Read `README.md` and inspect `src/schemas/videoPlan.schema.js` before changing the plan contract.
+1. Read `README.md` and inspect `src/modules/video-plans/video-plan.schema.js` before changing the plan contract.
 2. Preserve the 5-8 scene structure. Give each scene one narration line, brief on-screen text, a filmable visual direction, a 2.5-8 second duration, and a supported accent.
 3. Use `POST /api/video-plans/generate` to create plans. Do not write runtime JSON by hand.
 4. Use `POST /api/video-plans/:id/render` to queue rendering. Poll the detail endpoint until `ready` or `failed`.

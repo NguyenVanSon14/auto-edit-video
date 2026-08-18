@@ -1,7 +1,7 @@
 const { GoogleGenAI } = require('@google/genai');
 const OpenAI = require('openai');
-const { videoPlanSchema, normalizeDurations } = require('../schemas/videoPlan.schema');
-const { AppError } = require('../lib/errors');
+const { videoPlanSchema, normalizeDurations } = require('./video-plan.schema');
+const { AppError } = require('../../core/app-error');
 
 const JSON_SHAPE = `{
   "topic": "specific angle",

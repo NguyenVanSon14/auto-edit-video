@@ -4,9 +4,9 @@ const { spawnSync } = require('node:child_process');
 
 const projectRoot = path.resolve(__dirname, '..', '..', '..', '..');
 const required = [
-  'src/schemas/videoPlan.schema.js',
-  'src/services/ai.service.js',
-  'src/services/render.service.js',
+  'src/modules/video-plans/video-plan.schema.js',
+  'src/modules/video-plans/video-plan.ai.js',
+  'src/modules/video-plans/video-plan.renderer.js',
   'public/index.html',
   'README.md',
 ];

@@ -1,7 +1,7 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs/promises');
 const path = require('node:path');
-const config = require('../config');
+const config = require('../../core/config');
 
 let operationQueue = Promise.resolve();
 

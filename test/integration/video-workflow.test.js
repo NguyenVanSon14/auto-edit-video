@@ -11,8 +11,8 @@ process.env.RENDER_WIDTH = '360';
 process.env.RENDER_HEIGHT = '640';
 process.env.MOCK_AI = 'true';
 
-const app = require('../src/app');
-const { generateMock, parseAiResponse } = require('../src/services/ai.service');
+const app = require('../../src/app');
+const { generateMock, parseAiResponse } = require('../../src/modules/video-plans/video-plan.ai');
 let generatedPlanId;
 
 before(async () => {

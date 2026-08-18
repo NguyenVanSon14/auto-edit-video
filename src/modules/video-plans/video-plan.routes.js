@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { generate, list, detail, render, remove } = require('../controllers/videoPlan.controller');
+const { generate, list, detail, render, remove } = require('./video-plan.controller');
 
 // POST /api/video-plans/generate  — Generate a new video plan via AI
 router.post('/generate', generate);

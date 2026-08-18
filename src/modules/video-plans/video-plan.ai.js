@@ -77,7 +77,7 @@ async function generateWithOpenAI(input) {
   return parseAiResponse(response.output_text, input.durationSeconds);
 }
 
-function generateMock({ niche, language, durationSeconds }) {
+function generateMock({ niche, language, durationSeconds, imageProvider = 'demo' }) {
   const isVietnamese = language === 'vi';
   const copy = isVietnamese
     ? [
@@ -103,6 +103,7 @@ function generateMock({ niche, language, durationSeconds }) {
   const accents = ['coral', 'mint', 'gold', 'sky', 'rose', 'mint', 'gold', 'coral'];
   const selectedCopy = durationSeconds > 48 ? copy : [...copy.slice(0, 5), copy.at(-1)];
   const baseDuration = durationSeconds / selectedCopy.length;
+  const mediaCreatedAt = new Date().toISOString();
   return videoPlanSchema.parse({
     topic: isVietnamese ? `Cách tập trung sâu cho người bận rộn: ${niche}` : `A practical focus reset for ${niche}`,
     hook: copy[0][0],
@@ -110,18 +111,33 @@ function generateMock({ niche, language, durationSeconds }) {
     description: isVietnamese
       ? 'Một quy trình nhỏ, rõ ràng để bắt đầu ngày mới với công việc thật sự quan trọng.'
       : 'A small, repeatable routine for starting the day with the work that matters.',
-    scenes: selectedCopy.map(([narration, onScreenText, visual], index) => ({
-      narration,
-      onScreenText,
-      visual,
-      durationSeconds: Number(baseDuration.toFixed(2)),
-      accent: accents[index],
-      backgroundAsset: index === 0
-        ? 'demo-focus/distracted.jpg'
-        : index === selectedCopy.length - 1
-          ? 'demo-focus/complete.jpg'
-          : 'demo-focus/focused.jpg',
-    })),
+    scenes: selectedCopy.map(([narration, onScreenText, visual], index) => {
+      const backgroundAsset = index === 0
+          ? 'demo-focus/distracted.jpg'
+          : index === selectedCopy.length - 1
+            ? 'demo-focus/complete.jpg'
+            : 'demo-focus/focused.jpg';
+      return {
+        narration,
+        onScreenText,
+        visual,
+        durationSeconds: Number(baseDuration.toFixed(2)),
+        accent: accents[index],
+        ...(imageProvider === 'demo' ? {
+          backgroundAsset,
+          media: {
+            type: 'demo',
+            provider: 'bundled',
+            model: null,
+            prompt: visual,
+            path: backgroundAsset,
+            sourceUrl: null,
+            license: 'project-generated-demo',
+            createdAt: mediaCreatedAt,
+          },
+        } : {}),
+      };
+    }),
     hashtags: isVietnamese ? ['#taptrung', '#nangsuat', '#kynang'] : ['#focus', '#productivity', '#habits'],
   });
 }

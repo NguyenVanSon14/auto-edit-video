@@ -1,11 +1,12 @@
 const state = { plans: [], selected: null, pollTimer: null, sceneTimer: null, sceneIndex: 0 };
 const elements = Object.fromEntries([
   'serverLabel', 'generateForm', 'niche', 'duration', 'durationValue', 'generateButton', 'formMessage',
-  'projectList', 'emptyPreview', 'videoPreview', 'posterPreview', 'previewCopy', 'sceneCounter',
+  'projectList', 'previewFrame', 'emptyPreview', 'videoPreview', 'posterPreview', 'previewCopy', 'sceneCounter',
   'sceneText', 'sceneNarration', 'previewActions', 'renderButton', 'downloadButton', 'progressWrap',
   'progressLabel', 'progressValue', 'renderProgress', 'storyboardEditor', 'storyboardForm',
   'sceneEditorList', 'saveStoryboardButton', 'storyboardMessage', 'projectVoiceProvider', 'editorState',
   'approvedForRender',
+  'mediaButton', 'mediaStatus',
 ].map((id) => [id, document.getElementById(id)]));
 
 async function api(path, options) {
@@ -41,9 +42,23 @@ function escapeHtml(value) {
   return node.innerHTML;
 }
 
+function sceneMediaUrl(scene) {
+  if (scene.media?.type === 'generated') return `/media/${scene.media.path}`;
+  const asset = scene.backgroundAsset || (scene.media?.type === 'demo' ? scene.media.path : null);
+  return asset ? `/assets/${asset}` : null;
+}
+
+function hasCompleteMedia(plan) {
+  return plan.scenes.every((scene) => Boolean(sceneMediaUrl(scene)));
+}
+
 function showScene() {
   if (!state.selected?.scenes?.length || state.selected.status === 'ready') return;
   const scene = state.selected.scenes[state.sceneIndex % state.selected.scenes.length];
+  const mediaUrl = sceneMediaUrl(scene);
+  elements.previewFrame.style.backgroundImage = mediaUrl ? `url("${mediaUrl}")` : '';
+  elements.previewFrame.style.backgroundSize = mediaUrl ? 'cover' : '';
+  elements.previewFrame.style.backgroundPosition = mediaUrl ? 'center' : '';
   elements.sceneCounter.textContent = `${String(state.sceneIndex + 1).padStart(2, '0')} / ${String(state.selected.scenes.length).padStart(2, '0')}`;
   elements.sceneText.textContent = scene.onScreenText;
   elements.sceneNarration.textContent = scene.narration;
@@ -52,16 +67,27 @@ function showScene() {
 
 function renderStoryboardEditor(plan) {
   const busy = ['queued', 'rendering'].includes(plan.status);
+  const mediaBusy = ['queued', 'generating'].includes(plan.mediaStatus);
+  const mediaReady = hasCompleteMedia(plan) && plan.mediaStatus === 'ready';
   elements.storyboardEditor.hidden = false;
   elements.projectVoiceProvider.value = plan.voiceProvider || 'none';
   elements.approvedForRender.checked = Boolean(plan.approvedForRender);
   elements.projectVoiceProvider.disabled = busy;
-  elements.approvedForRender.disabled = busy;
+  elements.approvedForRender.disabled = busy || mediaBusy || !mediaReady;
+  elements.mediaButton.disabled = busy || mediaBusy || mediaReady;
+  elements.mediaButton.textContent = mediaBusy ? 'Đang tạo ảnh...' : mediaReady ? 'Ảnh đã sẵn sàng' : 'Tạo ảnh theo từng cảnh';
+  elements.mediaStatus.textContent = mediaBusy
+    ? `${plan.mediaProgress || 0}%`
+    : mediaReady
+      ? `${plan.scenes.length}/${plan.scenes.length} cảnh có ảnh`
+      : plan.mediaError || 'Chưa đủ ảnh';
   elements.saveStoryboardButton.disabled = busy;
   elements.editorState.textContent = busy ? statusText(plan.status) : `${plan.scenes.length} cảnh`;
   elements.sceneEditorList.innerHTML = plan.scenes.map((scene, index) => `
     <div class="scene-editor" data-scene-index="${index}">
       <div class="scene-editor-header"><span>CẢNH ${String(index + 1).padStart(2, '0')}</span><span>${scene.durationSeconds} giây</span></div>
+      ${sceneMediaUrl(scene) ? `<img class="scene-media-preview" src="${sceneMediaUrl(scene)}" alt="Ảnh cảnh ${index + 1}" />` : '<div class="scene-media-missing">CHƯA CÓ ẢNH</div>'}
+      ${scene.media ? `<p class="scene-media-source">${escapeHtml(scene.media.provider)}${scene.media.model ? ` · ${escapeHtml(scene.media.model)}` : ''}</p>` : ''}
       <label>Chữ trên màn hình</label>
       <input type="text" data-field="onScreenText" maxlength="90" value="${escapeHtml(scene.onScreenText)}" ${busy ? 'disabled' : ''} />
       <label>Lời đọc</label>
@@ -81,11 +107,12 @@ function present(plan) {
   elements.posterPreview.hidden = true;
   elements.previewCopy.hidden = plan.status === 'ready';
   elements.renderButton.disabled = ['queued', 'rendering'].includes(plan.status);
-  elements.renderButton.disabled ||= !plan.approvedForRender;
+  elements.renderButton.disabled ||= !plan.approvedForRender || !hasCompleteMedia(plan) || plan.mediaStatus !== 'ready';
   elements.renderButton.textContent = plan.status === 'ready' ? 'Dựng lại MP4' : 'Dựng MP4';
   elements.downloadButton.hidden = plan.status !== 'ready';
   elements.progressWrap.hidden = !['queued', 'rendering', 'failed'].includes(plan.status);
   if (plan.status === 'ready') {
+    elements.previewFrame.style.backgroundImage = '';
     const stamp = encodeURIComponent(plan.updatedAt);
     elements.videoPreview.src = `${plan.outputUrl}?v=${stamp}`;
     elements.downloadButton.href = plan.outputUrl;
@@ -116,7 +143,7 @@ async function loadPlans() {
 async function selectPlan(id) {
   const plan = await api(`/api/video-plans/${id}`);
   present(plan);
-  if (['queued', 'rendering'].includes(plan.status)) startPolling(id);
+  if (['queued', 'rendering'].includes(plan.status) || ['queued', 'generating'].includes(plan.mediaStatus)) startPolling(id);
 }
 
 function startPolling(id) {
@@ -125,7 +152,7 @@ function startPolling(id) {
     try {
       const plan = await api(`/api/video-plans/${id}`);
       present(plan);
-      if (!['queued', 'rendering'].includes(plan.status)) {
+      if (!['queued', 'rendering'].includes(plan.status) && !['queued', 'generating'].includes(plan.mediaStatus)) {
         clearInterval(state.pollTimer);
         await loadPlans();
       }
@@ -172,6 +199,20 @@ elements.renderButton.addEventListener('click', async () => {
   } catch (error) {
     showMessage(error.message, true);
     elements.renderButton.disabled = false;
+  }
+});
+
+elements.mediaButton.addEventListener('click', async () => {
+  if (!state.selected) return;
+  elements.mediaButton.disabled = true;
+  elements.storyboardMessage.textContent = 'Đang chuẩn bị hàng đợi tạo ảnh theo từng cảnh...';
+  try {
+    const plan = await api(`/api/video-plans/${state.selected.id}/media`, { method: 'POST' });
+    present(plan);
+    if (['queued', 'generating'].includes(plan.mediaStatus)) startPolling(plan.id);
+  } catch (error) {
+    elements.storyboardMessage.textContent = error.message;
+    elements.mediaButton.disabled = false;
   }
 });
 

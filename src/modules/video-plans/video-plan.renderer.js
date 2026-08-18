@@ -87,8 +87,16 @@ async function makeSceneImages(plan, workDir, onProgress) {
   for (let index = 0; index < plan.scenes.length; index += 1) {
     const scene = plan.scenes[index];
     const target = path.join(workDir, `scene-${index}.png`);
-    if (scene.backgroundAsset) {
-      const backgroundPath = path.join(config.rootDir, 'assets', scene.backgroundAsset);
+    if (scene.backgroundAsset || scene.media?.path) {
+      const backgroundPath = scene.media?.type === 'generated'
+        ? path.resolve(config.mediaDir, scene.media.path)
+        : path.resolve(config.rootDir, 'assets', scene.backgroundAsset || scene.media.path);
+      const allowedRoot = scene.media?.type === 'generated'
+        ? `${path.resolve(config.mediaDir)}${path.sep}`
+        : `${path.resolve(config.rootDir, 'assets')}${path.sep}`;
+      if (!backgroundPath.startsWith(allowedRoot)) {
+        throw new AppError('Scene media resolved outside the allowed directory.', 500, 'INVALID_MEDIA_PATH');
+      }
       await sharp(backgroundPath)
         .resize(WIDTH, HEIGHT, { fit: 'cover', position: 'centre' })
         .composite([{ input: Buffer.from(sceneSvg(plan, scene, index, true)) }])

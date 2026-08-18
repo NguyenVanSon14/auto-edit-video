@@ -36,6 +36,9 @@
           <label for="visualStyle">Phong cách hình ảnh</label>
           <select id="visualStyle" name="visualStyle"><option value="realistic">Đời thực</option><option value="cinematic">Điện ảnh</option><option value="minimal">Tối giản</option></select>
 
+          <label for="imageProvider">Nguồn hình ảnh</label>
+          <select id="imageProvider" name="imageProvider"><option value="gemini">Gemini · tạo đúng từng cảnh</option><option value="openai">OpenAI · tạo đúng từng cảnh</option><option value="demo">Bộ ảnh demo · chỉ chủ đề tập trung</option></select>
+
           <div class="field-row">
             <div><label for="language">Ngôn ngữ</label><select id="language" name="language"><option value="vi">Tiếng Việt</option><option value="en">English</option></select></div>
             <div><label for="tone">Phong cách</label><select id="tone" name="tone"><option value="energetic">Năng lượng</option><option value="cinematic">Điện ảnh</option><option value="educational">Giải thích</option><option value="calm">Nhẹ nhàng</option></select></div>
@@ -70,6 +73,7 @@
           <form id="storyboardForm">
             <label for="projectVoiceProvider">Giọng đọc khi render</label>
             <select id="projectVoiceProvider"><option value="none">Không dùng · miễn phí</option><option value="gemini">Gemini TTS · dùng API</option></select>
+            <div class="media-toolbar"><button class="secondary-action" id="mediaButton" type="button">Tạo ảnh theo từng cảnh</button><span id="mediaStatus"></span></div>
             <div class="scene-editor-list" id="sceneEditorList"></div>
             <label class="approval-check"><input id="approvedForRender" type="checkbox" /> <span>Tôi đã kiểm tra nội dung, hình ảnh, nhịp cảnh và đồng ý dựng video.</span></label>
             <button class="secondary-action" id="saveStoryboardButton" type="submit">Lưu storyboard</button>

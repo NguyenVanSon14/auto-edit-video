@@ -1,4 +1,5 @@
 require('dotenv').config();
+const path = require('node:path');
 const express = require('express');
 const cors = require('cors');
 const config = require('./core/config');
@@ -12,6 +13,8 @@ app.disable('x-powered-by');
 app.use(cors({ origin: process.env.CORS_ORIGIN || true }));
 app.use(express.json({ limit: '64kb' }));
 app.use(express.static(config.publicDir));
+app.use('/assets', express.static(path.join(config.rootDir, 'assets'), { fallthrough: false }));
+app.use('/media', express.static(config.mediaDir, { fallthrough: false }));
 app.use('/renders', express.static(config.renderDir, { fallthrough: false }));
 app.use('/api/health', healthRoutes);
 app.use('/api/video-plans', videoPlanRoutes);

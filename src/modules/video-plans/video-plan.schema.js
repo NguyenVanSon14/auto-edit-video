@@ -7,6 +7,17 @@ const BACKGROUND_ASSETS = [
   'demo-focus/complete.jpg',
 ];
 
+const sceneMediaSchema = z.object({
+  type: z.enum(['generated', 'demo', 'upload', 'stock']),
+  provider: z.string().trim().min(2).max(40),
+  model: z.string().trim().min(2).max(80).nullable().optional(),
+  prompt: z.string().trim().min(3).max(1200),
+  path: z.string().regex(/^(?:[0-9a-f-]+\/scene-\d{2}\.jpg|demo-focus\/(?:distracted|focused|complete)\.jpg)$/),
+  sourceUrl: z.string().url().nullable().optional(),
+  license: z.string().trim().min(2).max(120),
+  createdAt: z.string().datetime(),
+});
+
 const sceneSchema = z.object({
   narration: z.string().trim().min(8).max(320),
   onScreenText: z.string().trim().min(2).max(90),
@@ -14,6 +25,7 @@ const sceneSchema = z.object({
   durationSeconds: z.number().min(2.5).max(8),
   accent: z.enum(PALETTE),
   backgroundAsset: z.enum(BACKGROUND_ASSETS).optional(),
+  media: sceneMediaSchema.optional(),
 });
 
 const videoPlanSchema = z.object({
@@ -31,6 +43,7 @@ const generateRequestSchema = z.object({
   targetAudience: z.string().trim().min(2).max(120).default('Người xem mạng xã hội'),
   platform: z.enum(['tiktok', 'reels', 'shorts']).default('tiktok'),
   visualStyle: z.enum(['realistic', 'cinematic', 'minimal']).default('realistic'),
+  imageProvider: z.enum(['gemini', 'openai', 'demo']).default('gemini'),
   language: z.enum(['vi', 'en']).default('vi'),
   tone: z.enum(['energetic', 'cinematic', 'educational', 'calm']).default('energetic'),
   durationSeconds: z.coerce.number().int().min(15).max(60).default(30),
@@ -59,4 +72,4 @@ function normalizeDurations(plan, targetDuration) {
   };
 }
 
-module.exports = { PALETTE, BACKGROUND_ASSETS, videoPlanSchema, generateRequestSchema, updateVideoPlanSchema, normalizeDurations };
+module.exports = { PALETTE, BACKGROUND_ASSETS, sceneMediaSchema, videoPlanSchema, generateRequestSchema, updateVideoPlanSchema, normalizeDurations };

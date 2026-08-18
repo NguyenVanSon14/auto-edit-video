@@ -15,6 +15,7 @@ const app = require('../../src/app');
 const { generateMock, parseAiResponse } = require('../../src/modules/video-plans/video-plan.ai');
 const { pcmToWav } = require('../../src/modules/video-plans/video-plan.voice');
 const { buildFfmpegArgs } = require('../../src/modules/video-plans/video-plan.renderer');
+const { buildSceneImagePrompt } = require('../../src/modules/video-plans/video-plan.media');
 let generatedPlanId;
 
 before(async () => {
@@ -37,7 +38,7 @@ test('health and dashboard are available', async () => {
 test('generation rejects invalid input and stores a valid storyboard', async () => {
   await request(app).post('/api/video-plans/generate').send({ niche: '' }).expect(400);
   const created = await request(app).post('/api/video-plans/generate').send({
-    niche: 'quản lý thời gian', language: 'vi', tone: 'educational', durationSeconds: 15,
+    niche: 'quản lý thời gian', language: 'vi', tone: 'educational', durationSeconds: 15, imageProvider: 'demo',
   }).expect(201);
   assert.equal(created.body.scenes.length, 6);
   assert.ok(created.body.scenes.every((scene) => scene.backgroundAsset?.startsWith('demo-focus/')));
@@ -47,10 +48,14 @@ test('generation rejects invalid input and stores a valid storyboard', async () 
   assert.equal(created.body.platform, 'tiktok');
   assert.equal(created.body.visualStyle, 'realistic');
   assert.equal(created.body.approvedForRender, false);
+  assert.equal(created.body.mediaStatus, 'ready');
+  assert.ok(created.body.scenes.every((scene) => scene.media?.type === 'demo'));
   generatedPlanId = created.body.id;
 
   const detail = await request(app).get(`/api/video-plans/${created.body.id}`).expect(200);
   assert.equal(detail.body.title, created.body.title);
+  const media = await request(app).post(`/api/video-plans/${created.body.id}/media`).expect(200);
+  assert.equal(media.body.mediaStatus, 'ready');
   const listing = await request(app).get('/api/video-plans').expect(200);
   assert.equal(listing.body[0].sceneCount, 6);
 });
@@ -89,6 +94,20 @@ test('render requires an explicit storyboard approval', async () => {
     .expect(200);
 });
 
+test('approval rejects a storyboard with missing scene media', async () => {
+  const created = await request(app).post('/api/video-plans/generate').send({
+    niche: 'cách pha cà phê', language: 'vi', durationSeconds: 15, imageProvider: 'openai',
+  }).expect(201);
+  assert.equal(created.body.mediaStatus, 'missing');
+  assert.ok(created.body.scenes.every((scene) => !scene.backgroundAsset && !scene.media));
+  const rejected = await request(app)
+    .patch(`/api/video-plans/${created.body.id}`)
+    .send({ approvedForRender: true })
+    .expect(409);
+  assert.equal(rejected.body.error.code, 'MEDIA_NOT_READY');
+  await request(app).delete(`/api/video-plans/${created.body.id}`).expect(204);
+});
+
 test('AI parser accepts fenced JSON and rejects malformed plans', () => {
   const plan = generateMock({ niche: 'focus', language: 'en', durationSeconds: 30 });
   const parsed = parseAiResponse('```json\n' + JSON.stringify(plan) + '\n```', 30);
@@ -113,6 +132,17 @@ test('renderer maps an optional voice track and pads short narration', () => {
   assert.ok(args.includes('voiceover.wav'));
   assert.ok(args.includes('apad'));
   assert.ok(!args.includes('anullsrc=channel_layout=stereo:sample_rate=44100'));
+});
+
+test('scene image prompt carries project and scene context without embedded text', () => {
+  const plan = {
+    ...generateMock({ niche: 'focus', language: 'en', durationSeconds: 30 }),
+    targetAudience: 'remote workers', platform: 'shorts', visualStyle: 'cinematic',
+  };
+  const prompt = buildSceneImagePrompt(plan, plan.scenes[0], 0);
+  assert.match(prompt, /remote workers/);
+  assert.match(prompt, /scene 1 of 6/i);
+  assert.match(prompt, /No text, letters, numbers/i);
 });
 
 test('render endpoint reaches ready with a playable MP4 and poster', { timeout: 90_000 }, async () => {

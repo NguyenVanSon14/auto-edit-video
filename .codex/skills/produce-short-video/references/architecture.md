@@ -6,6 +6,7 @@
 | --- | --- | --- |
 | Request validation | `src/modules/video-plans/video-plan.schema.js` | Normalized generation options |
 | Story generation | `src/modules/video-plans/video-plan.ai.js` | Validated 5-8 scene plan |
+| Scene media | `src/modules/video-plans/video-plan.media.js` | Context-specific image and source metadata per scene |
 | Persistence | `src/modules/video-plans/video-plan.store.js` | Atomic `data/video-plans.json` update |
 | Job control | `src/modules/video-plans/video-plan.renderer.js` | Serialized render and progress updates |
 | Voice generation | `src/modules/video-plans/video-plan.voice.js` | Optional Gemini PCM converted to WAV |
@@ -16,6 +17,8 @@
 ## Status transitions
 
 `draft (unapproved) -> draft (approved) -> queued -> rendering -> ready`
+
+Media transitions independently through `missing -> queued -> generating -> ready` or `failed`. Approval requires `mediaStatus=ready` and full scene coverage.
 
 Any render error changes `rendering` to `failed`. A user may submit render again from `failed` or `ready`. Do not introduce a state that the dashboard cannot display.
 
@@ -31,3 +34,5 @@ Any render error changes `rendering` to `failed`. A user may submit render again
 - Make voice generation opt-in; tests must not call paid APIs.
 - Reject render requests until the user explicitly approves the current draft.
 - Reset approval whenever storyboard content changes.
+- Delete generated scene media when visual directions change.
+- Never render a scene without allowlisted demo media or validated project media.

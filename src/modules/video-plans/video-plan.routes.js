@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { generate, list, detail, update, render, remove } = require('./video-plan.controller');
+const { generate, list, detail, update, prepareMedia, render, remove } = require('./video-plan.controller');
 
 // POST /api/video-plans/generate  — Generate a new video plan via AI
 router.post('/generate', generate);
+
+// POST /api/video-plans/:id/media     - Generate context-specific scene images
+router.post('/:id/media', prepareMedia);
 
 // POST /api/video-plans/:id/render    - Queue an MP4 render
 router.post('/:id/render', render);

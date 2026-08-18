@@ -15,11 +15,12 @@ Follow the repository's single supported flow: production brief -> validated sto
 4. Use `PATCH /api/video-plans/:id` for edits. Preserve non-edited scene fields and expect the previous render to be invalidated.
 5. Keep `voiceProvider=none` unless the user explicitly requests Gemini TTS and accepts an API call.
 6. Use only `backgroundAsset` values allowed by the scene schema. Keep the bundled focus images limited to the focus mock; do not attach them to unrelated AI topics.
-7. Run `npm run assets:prepare` only after replacing the source atlas in `assets/demo-focus/`.
-8. Review narration, on-screen copy, visual direction, pacing, and media relevance for every scene. Set `approvedForRender=true` through `PATCH`; never bypass this gate.
-9. Use `POST /api/video-plans/:id/render` to queue rendering. Poll the detail endpoint until `ready` or `failed`.
-10. Verify the output exists, has a poster, uses a 9:16 frame, and plays as H.264 MP4 before reporting success.
-11. Run `node .codex/skills/produce-short-video/scripts/check-workflow.js` after code or prompt changes.
+7. For non-demo projects, use `POST /api/video-plans/:id/media` and poll until `mediaStatus=ready`. Require one context-specific asset and complete source metadata for every scene. Never silently substitute typography or unrelated media.
+8. Run `npm run assets:prepare` only after replacing the source atlas in `assets/demo-focus/`.
+9. Review narration, on-screen copy, visual direction, pacing, and actual media relevance for every scene. Set `approvedForRender=true` through `PATCH`; never bypass the media or approval gates.
+10. Use `POST /api/video-plans/:id/render` to queue rendering. Poll the detail endpoint until `ready` or `failed`.
+11. Verify the output exists, has a poster, uses a 9:16 frame, and plays as H.264 MP4 before reporting success.
+12. Run `node .codex/skills/produce-short-video/scripts/check-workflow.js` after code or prompt changes.
 
 ## Guard content quality
 

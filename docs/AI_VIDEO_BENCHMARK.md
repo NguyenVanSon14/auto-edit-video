@@ -32,11 +32,10 @@ Research date: 2026-08-18. This document records product patterns, not marketing
 
 ## Current scope
 
-The repository now implements the brief, validated storyboard, editable visual directions, voice choice, approval gate, render queue, preview, and download stages. The bundled focus demo has matched media.
+The repository now implements the brief, validated storyboard, editable visual directions, per-scene Gemini/OpenAI image generation, media metadata, voice choice, media/approval gates, render queue, preview, and download stages. The bundled focus demo remains the no-cost test fixture.
 
 The following remain future integrations and must not be described as complete:
 
-- Topic-specific image/video generation for every scene.
 - Stock media search with license metadata.
 - Music selection and audio ducking.
 - Word-level subtitle timing.

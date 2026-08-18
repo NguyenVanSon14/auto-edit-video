@@ -29,14 +29,19 @@ Story order: hook -> context -> useful method -> proof or consequence -> payoff 
 
 ## 3. Media plan
 
-For each scene, choose one media source:
+Every scene must have one concrete media asset before approval. Currently supported sources are:
 
-- Generated image or video.
-- Licensed stock asset.
-- User upload.
-- Typography fallback.
+- Generated image from the configured image provider.
+- Bundled demo media for the focus template.
 
-The `visual` field is the media brief. `backgroundAsset` is a local asset reference and must be on the schema allowlist. Never attach a convenient but unrelated image. Record provider, prompt, license, and source URL when external media support is added.
+The `visual` field is the media brief, not a finished asset. For Gemini or OpenAI projects, `POST /api/video-plans/:id/media` generates a portrait image for every scene and stores it under `data/media/<project-id>/`. Store provider, model, prompt, local path, license, and creation time in each scene. `backgroundAsset` is reserved for allowlisted bundled demo assets. Never attach a convenient but unrelated image and never fall back silently to a text-only background.
+
+User uploads and licensed stock search remain future providers. They must implement the same metadata contract and approval gate.
+
+Provider references:
+
+- Gemini image generation: https://ai.google.dev/gemini-api/docs/image-generation
+- OpenAI image generation: https://developers.openai.com/api/docs/guides/image-generation
 
 ## 4. Audio and captions
 
@@ -44,7 +49,7 @@ Voice is opt-in. `none` produces a silent AAC track; `gemini` may spend API quot
 
 ## 5. Human review
 
-The user reviews every scene for factual accuracy, language, visual relevance, pacing, and copyright safety. The dashboard must save `approvedForRender=true` before rendering. Any subsequent storyboard edit resets approval and invalidates old output.
+The user reviews every scene for factual accuracy, language, visual relevance, pacing, and copyright safety. Approval is blocked until every scene has media. The dashboard must save `approvedForRender=true` before rendering. Any subsequent scene edit resets approval, deletes generated media, and invalidates old output.
 
 ## 6. Render and quality control
 
@@ -71,7 +76,8 @@ Editing a ready or failed project removes the old render, returns the project to
 ```text
 brief validated
   -> draft storyboard
-  -> media/audio choices
+  -> context-specific media generation
+  -> media review/audio choice
   -> approved draft
   -> queued
   -> rendering

@@ -89,13 +89,13 @@ async function makeSceneImages(plan, workDir, onProgress) {
 function buildFfmpegArgs(plan, workDir, outputPath) {
   const args = ['-y'];
   for (let index = 0; index < plan.scenes.length; index += 1) {
-    args.push('-loop', '1', '-t', String(plan.scenes[index].durationSeconds), '-i', path.join(workDir, `scene-${index}.png`));
+    args.push('-loop', '1', '-framerate', String(FPS), '-t', String(plan.scenes[index].durationSeconds), '-i', path.join(workDir, `scene-${index}.png`));
   }
   const totalDuration = plan.scenes.reduce((sum, scene) => sum + scene.durationSeconds, 0) - TRANSITION * (plan.scenes.length - 1);
   args.push('-f', 'lavfi', '-t', String(totalDuration), '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100');
 
   const filters = plan.scenes.map((scene, index) =>
-    `[${index}:v]scale=${WIDTH}:${HEIGHT},fps=${FPS},format=yuv420p,setpts=PTS-STARTPTS[v${index}]`,
+    `[${index}:v]scale=${WIDTH}:${HEIGHT},fps=${FPS},settb=AVTB,format=yuv420p,setpts=PTS-STARTPTS[v${index}]`,
   );
   let previous = 'v0';
   let elapsed = plan.scenes[0].durationSeconds;
@@ -110,7 +110,7 @@ function buildFfmpegArgs(plan, workDir, outputPath) {
   args.push(
     '-filter_complex', filters.join(';'),
     '-map', '[video]', '-map', `${plan.scenes.length}:a`,
-    '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p',
+    '-r', String(FPS), '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p',
     '-c:a', 'aac', '-b:a', '96k', '-shortest', '-movflags', '+faststart',
     '-progress', 'pipe:2', '-nostats', outputPath,
   );

@@ -9,6 +9,7 @@
     "test": "node --test",
     "test:watch": "node --test --watch",
     "check": "npm run test && npm audit --audit-level=high",
+    "assets:prepare": "node scripts/prepare-demo-assets.js",
     "render:demo": "node scripts/render-demo.js"
   },
   "dependencies": {

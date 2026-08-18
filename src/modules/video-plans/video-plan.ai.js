@@ -110,6 +110,11 @@ function generateMock({ niche, language, durationSeconds }) {
       visual,
       durationSeconds: Number(baseDuration.toFixed(2)),
       accent: accents[index],
+      backgroundAsset: index === 0
+        ? 'demo-focus/distracted.jpg'
+        : index === selectedCopy.length - 1
+          ? 'demo-focus/complete.jpg'
+          : 'demo-focus/focused.jpg',
     })),
     hashtags: isVietnamese ? ['#taptrung', '#nangsuat', '#kynang'] : ['#focus', '#productivity', '#habits'],
   });

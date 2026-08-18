@@ -20,6 +20,7 @@ Mở `http://localhost:3001`. Cấu hình mặc định `MOCK_AI=true` không c�
 auto-edit-video/
 ├── .codex/skills/produce-short-video/  # Skill vận hành và kiểm tra workflow
 ├── .github/workflows/                  # GitHub Actions
+├── assets/demo-focus/                  # Ảnh nền mẫu đã tạo cho video demo
 ├── data/                               # Dữ liệu runtime, không commit
 ├── public/
 │   ├── css/                            # Giao diện
@@ -48,7 +49,7 @@ Mỗi tính năng nghiệp vụ nằm trong một thư mục dưới `src/module
 5. Renderer tạo video H.264 dọc 720x1280, hiệu ứng chuyển cảnh, poster và voice-over tùy chọn.
 6. Xem trước hoặc tải file trong thư viện dự án.
 
-Đây là phong cách kinetic typography, nên video chạy được mà không phụ thuộc kho stock hoặc bản quyền nhạc. Mặc định renderer dùng audio im lặng; chỉ gọi Gemini TTS khi người dùng chủ động chọn trên giao diện. Trường `visual` trong mỗi cảnh là chỉ dẫn B-roll để mở rộng pipeline sau này.
+Video kết hợp ảnh nền thật và kinetic typography. Storyboard mock dùng bộ ảnh đồng nhất trong `assets/demo-focus/`; nội dung AI khác vẫn có thể dùng nền typography khi chưa có asset phù hợp. Mặc định renderer dùng audio im lặng; chỉ gọi Gemini TTS khi người dùng chủ động chọn trên giao diện. Trường `visual` trong mỗi cảnh là chỉ dẫn B-roll để mở rộng pipeline sau này.
 
 ## Dùng AI thật
 
@@ -71,6 +72,7 @@ Hoặc đặt `AI_PROVIDER=openai`, `OPENAI_API_KEY` và `OPENAI_MODEL`. Không 
 npm run dev          # Server tự reload
 npm test             # Test API, schema và render MP4 thật
 npm run check        # Test và audit dependency
+npm run assets:prepare # Cắt lại ba ảnh demo từ storyboard atlas
 npm run render:demo  # Tạo renders/demo.mp4
 ```
 

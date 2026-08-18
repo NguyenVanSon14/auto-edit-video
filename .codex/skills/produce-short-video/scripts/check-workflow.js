@@ -9,6 +9,7 @@ const required = [
   'src/modules/video-plans/video-plan.renderer.js',
   'src/modules/video-plans/video-plan.voice.js',
   'public/index.html',
+  'assets/demo-focus/focused.jpg',
   'README.md',
 ];
 

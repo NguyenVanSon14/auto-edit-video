@@ -40,6 +40,7 @@ test('generation rejects invalid input and stores a valid storyboard', async () 
     niche: 'quản lý thời gian', language: 'vi', tone: 'educational', durationSeconds: 15,
   }).expect(201);
   assert.equal(created.body.scenes.length, 6);
+  assert.ok(created.body.scenes.every((scene) => scene.backgroundAsset?.startsWith('demo-focus/')));
   assert.equal(created.body.status, 'draft');
   assert.equal(created.body.voiceProvider, 'none');
   generatedPlanId = created.body.id;

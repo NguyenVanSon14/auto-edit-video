@@ -14,9 +14,11 @@ Follow the repository's single supported flow: topic -> validated storyboard -> 
 3. Use `POST /api/video-plans/generate` to create plans. Do not write runtime JSON by hand.
 4. Use `PATCH /api/video-plans/:id` for edits. Preserve non-edited scene fields and expect the previous render to be invalidated.
 5. Keep `voiceProvider=none` unless the user explicitly requests Gemini TTS and accepts an API call.
-6. Use `POST /api/video-plans/:id/render` to queue rendering. Poll the detail endpoint until `ready` or `failed`.
-7. Verify the output exists, has a poster, uses a 9:16 frame, and plays as H.264 MP4 before reporting success.
-8. Run `node .codex/skills/produce-short-video/scripts/check-workflow.js` after code or prompt changes.
+6. Use only `backgroundAsset` values allowed by the scene schema. Keep the bundled focus images limited to the focus mock; do not attach them to unrelated AI topics.
+7. Run `npm run assets:prepare` only after replacing the source atlas in `assets/demo-focus/`.
+8. Use `POST /api/video-plans/:id/render` to queue rendering. Poll the detail endpoint until `ready` or `failed`.
+9. Verify the output exists, has a poster, uses a 9:16 frame, and plays as H.264 MP4 before reporting success.
+10. Run `node .codex/skills/produce-short-video/scripts/check-workflow.js` after code or prompt changes.
 
 ## Guard content quality
 

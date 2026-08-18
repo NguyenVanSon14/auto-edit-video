@@ -1,6 +1,11 @@
 const { z } = require('zod');
 
 const PALETTE = ['coral', 'mint', 'gold', 'sky', 'rose'];
+const BACKGROUND_ASSETS = [
+  'demo-focus/distracted.jpg',
+  'demo-focus/focused.jpg',
+  'demo-focus/complete.jpg',
+];
 
 const sceneSchema = z.object({
   narration: z.string().trim().min(8).max(320),
@@ -8,6 +13,7 @@ const sceneSchema = z.object({
   visual: z.string().trim().min(3).max(180),
   durationSeconds: z.number().min(2.5).max(8),
   accent: z.enum(PALETTE),
+  backgroundAsset: z.enum(BACKGROUND_ASSETS).optional(),
 });
 
 const videoPlanSchema = z.object({
@@ -46,4 +52,4 @@ function normalizeDurations(plan, targetDuration) {
   };
 }
 
-module.exports = { PALETTE, videoPlanSchema, generateRequestSchema, updateVideoPlanSchema, normalizeDurations };
+module.exports = { PALETTE, BACKGROUND_ASSETS, videoPlanSchema, generateRequestSchema, updateVideoPlanSchema, normalizeDurations };

@@ -53,18 +53,22 @@ function textBlock(lines, x, y, lineHeight, attributes) {
     .join('')}</text>`;
 }
 
-function sceneSvg(plan, scene, index) {
+function sceneSvg(plan, scene, index, hasBackground = false) {
   const accent = COLORS[scene.accent] || COLORS.coral;
   const headline = wrapText(scene.onScreenText.toUpperCase(), 18);
   const narration = wrapText(scene.narration, 35);
   const visual = wrapText(scene.visual, 42);
   const sceneNumber = String(index + 1).padStart(2, '0');
   const visualLabel = plan.language === 'vi' ? 'GỢI Ý HÌNH ẢNH' : 'VISUAL DIRECTION';
+  const background = hasBackground
+    ? '<rect width="100%" height="100%" fill="#090b0c" fill-opacity="0.52"/>'
+    : `<rect width="${WIDTH}" height="${HEIGHT}" fill="#111315"/>`;
+  const stageFill = hasBackground ? 'fill="#111315" fill-opacity="0.62"' : 'fill="#1b1e21"';
   return `
   <svg width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg">
-    <rect width="${WIDTH}" height="${HEIGHT}" fill="#111315"/>
+    ${background}
     <rect x="0" y="0" width="${WIDTH}" height="28" fill="${accent}"/>
-    <rect x="52" y="105" width="616" height="500" rx="4" fill="#1b1e21" stroke="#34383c" stroke-width="2"/>
+    <rect x="52" y="105" width="616" height="500" rx="4" ${stageFill} stroke="#c4cbc7" stroke-opacity="0.35" stroke-width="2"/>
     <path d="M52 606 L668 105" stroke="${accent}" stroke-opacity="0.22" stroke-width="90"/>
     <rect x="52" y="645" width="82" height="8" fill="${accent}"/>
     <text x="52" y="76" fill="#8e969d" font-family="Arial, sans-serif" font-size="19" font-weight="700">AUTO EDIT / VERTICAL STORY</text>
@@ -81,8 +85,18 @@ function sceneSvg(plan, scene, index) {
 
 async function makeSceneImages(plan, workDir, onProgress) {
   for (let index = 0; index < plan.scenes.length; index += 1) {
+    const scene = plan.scenes[index];
     const target = path.join(workDir, `scene-${index}.png`);
-    await sharp(Buffer.from(sceneSvg(plan, plan.scenes[index], index))).png().toFile(target);
+    if (scene.backgroundAsset) {
+      const backgroundPath = path.join(config.rootDir, 'assets', scene.backgroundAsset);
+      await sharp(backgroundPath)
+        .resize(WIDTH, HEIGHT, { fit: 'cover', position: 'centre' })
+        .composite([{ input: Buffer.from(sceneSvg(plan, scene, index, true)) }])
+        .png()
+        .toFile(target);
+    } else {
+      await sharp(Buffer.from(sceneSvg(plan, scene, index))).png().toFile(target);
+    }
     onProgress(Math.round(8 + ((index + 1) / plan.scenes.length) * 32));
   }
 }

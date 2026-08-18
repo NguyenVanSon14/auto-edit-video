@@ -10,6 +10,7 @@
 | Job control | `src/modules/video-plans/video-plan.renderer.js` | Serialized render and progress updates |
 | Voice generation | `src/modules/video-plans/video-plan.voice.js` | Optional Gemini PCM converted to WAV |
 | Media generation | Sharp + bundled FFmpeg | JPEG poster and H.264/AAC MP4 |
+| Demo visuals | `assets/demo-focus/` | Generated atlas and three portrait scene backgrounds |
 | User workflow | `public/` | Create, preview, render, download, delete |
 
 ## Status transitions
@@ -23,6 +24,7 @@ Any render error changes `rendering` to `failed`. A user may submit render again
 - Accept 15-60 second requested durations.
 - Produce 5-8 scenes with 2.5-8 seconds per scene.
 - Use only `coral`, `mint`, `gold`, `sky`, or `rose` accents.
+- Resolve scene backgrounds only from the schema allowlist under `assets/`.
 - Keep API errors shaped as `{ "error": { "code", "message" } }`.
 - Keep writes atomic and mutations sequential.
 - Store runtime artifacts only under the configured data and render directories.
